@@ -19,10 +19,38 @@ module.exports = (sequelize, DataTypes) => {
     }
   };
   Pessoas.init({
-    nome: DataTypes.STRING,
+    nome: {
+      type: DataTypes.STRING,
+      validate: {
+        funcaoValidadora: (dado) => { 
+          if (dado.length <= 3) throw new Error('o campo nome deve ter no mínimo 3 caracteres')
+        },
+        // Pode ser subistituido por
+        // len: {
+        //   args: [3,200],
+        //   msg: 'o campo nome deve ter no mínimo 3 caracteres'
+        // }
+      }
+    },
     ativo: DataTypes.BOOLEAN,
-    email: DataTypes.STRING,
-    role: DataTypes.STRING
+    email: {
+      type: DataTypes.STRING,
+      validate: {
+        isEmail: {
+          args: true,
+          msg: 'e-mail inválido'
+        }
+      }
+    },
+    role: {
+      type: DataTypes.STRING,
+      validate: {
+        isIn: {
+          args: [['estudante', 'docente']],
+          msg: 'as opções só podem ser estudante ou docente'
+        }
+      }
+    }
   }, {
     sequelize,
     modelName: 'Pessoas',
