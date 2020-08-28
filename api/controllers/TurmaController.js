@@ -1,9 +1,17 @@
 const database = require('../models')
+const Sequelize = require('sequelize')
+const Op = Sequelize.Op
 
 class TurmaController {
   static async pegaTodasAsTurmas(req, res){
     try {
-      const todasAsTurmas = await database.Turmas.findAll()
+      const { data_inicial, data_final } = req.query
+      const where = {}
+      data_inicial || data_final ? where.data_incio = {} : null
+      data_inicial ? where.data_incio[Op.gte] = data_inicial : null
+      data_final ? where.data_incio[Op.lte] = data_final : null
+      console.log(data_inicial, data_final)
+      const todasAsTurmas = await database.Turmas.findAll({where})
       return res.status(200).json(todasAsTurmas)  
     } catch (error) {
       return res.status(500).json(error.message)
@@ -55,6 +63,24 @@ class TurmaController {
     } catch (error) {
       return res.status(500).json(error.message)
     }
+  }
+
+    static async pegaTurmasLotadas(req, res) {
+      const lotacaoTurma = 2
+      try {
+          const turmasLotadas = await database.Matriculas.findAndCountAll({
+            where: {
+                status: 'confirmado'
+            },
+            attributes: ['turma_id'],
+            group: ['turma_id'],
+            having: Sequelize.literal(`count(turma_id) >= ${lotacaoTurma}`)
+            })
+          const quantidadeTurmasLotadas = turmasLotadas.count
+          return res.status(200).json(quantidadeTurmasLotadas)
+      } catch (err) {
+          return res.status(500).json(error.message)
+      }
   }
 
 }
